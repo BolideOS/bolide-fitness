@@ -6,20 +6,20 @@ set(HEADERS
     workoutcontroller.h
 )
 
-add_library(asteroid-workout ${SRC} ${HEADERS} resources.qrc)
-set_target_properties(asteroid-workout PROPERTIES PREFIX "")
+add_library(bolide-fitness ${SRC} ${HEADERS} resources.qrc)
+set_target_properties(bolide-fitness PROPERTIES PREFIX "")
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(MLITE5 REQUIRED mlite5)
 
-target_include_directories(asteroid-workout PRIVATE ${MLITE5_INCLUDE_DIRS})
+target_include_directories(bolide-fitness PRIVATE ${MLITE5_INCLUDE_DIRS})
 
-target_link_libraries(asteroid-workout PRIVATE
+target_link_libraries(bolide-fitness PRIVATE
     Qt5::Qml
     Qt5::Quick
     Qt5::DBus
     AsteroidApp
     ${MLITE5_LIBRARIES})
 
-install(TARGETS asteroid-workout
+install(TARGETS bolide-fitness
     DESTINATION ${CMAKE_INSTALL_LIBDIR})

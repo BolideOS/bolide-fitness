@@ -1,7 +1,7 @@
 import QtQuick 2.9
 import org.asteroid.controls 1.0
 import org.asteroid.utils 1.0
-import org.asteroid.workout 1.0
+import org.bolide.fitness 1.0
 import Nemo.Configuration 1.0
 
 Item {
@@ -9,7 +9,7 @@ Item {
 
     ConfigurationGroup {
         id: workoutSettings
-        path: "/asteroid-workout/settings"
+        path: "/bolide-fitness/settings"
 
         property int zone1Max: 100
         property int zone2Max: 120

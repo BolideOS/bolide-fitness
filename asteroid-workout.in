@@ -1,2 +1,0 @@
-#!/bin/sh
-exec invoker --single-instance --type=qt5 @CMAKE_INSTALL_FULL_LIBDIR@/asteroid-workout.so

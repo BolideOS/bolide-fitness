@@ -10,12 +10,12 @@
 #include <QDir>
 #include <mgconfitem.h>
 
-#define GLANCE_PREFIX "/org/asteroidos/glance/asteroid-workout"
+#define GLANCE_PREFIX "/org/bolideos/glance/bolide-fitness"
 
 // D-Bus constants
-#define POWERD_SERVICE      "org.asteroidos.powerd"
-#define POWERD_PATH         "/org/asteroidos/powerd"
-#define POWERD_INTERFACE    "org.asteroidos.powerd.ProfileManager"
+#define POWERD_SERVICE      "org.bolideos.powerd"
+#define POWERD_PATH         "/org/bolideos/powerd"
+#define POWERD_INTERFACE    "org.bolideos.powerd.ProfileManager"
 
 // Workout type definitions
 const QVector<WorkoutController::WorkoutTypeDef> WorkoutController::s_workoutTypes = {
@@ -51,7 +51,7 @@ WorkoutController::WorkoutController(QObject *parent)
     , m_elapsedSeconds(0)
     , m_heartRate(0)
 {
-    // Connect to asteroid-powerd
+    // Connect to bolide-powerd
     if (!m_systemBus.isConnected()) {
         qWarning() << "Cannot connect to system D-Bus";
     } else {
@@ -64,7 +64,7 @@ WorkoutController::WorkoutController(QObject *parent)
         );
 
         if (!m_powerd->isValid()) {
-            qWarning() << "Cannot connect to asteroid-powerd:" << m_powerd->lastError().message();
+            qWarning() << "Cannot connect to bolide-powerd:" << m_powerd->lastError().message();
             delete m_powerd;
             m_powerd = nullptr;
         } else {
