@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/main.qml</file>
+        <file>qml/WorkoutActivePage.qml</file>
+        <file>qml/DataScreenTimer.qml</file>
+        <file>qml/DataScreenHR.qml</file>
+        <file>qml/WorkoutSettingsPage.qml</file>
+    </qresource>
+</RCC>
