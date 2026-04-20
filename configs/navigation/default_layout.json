@@ -1,0 +1,103 @@
+{
+    "version": 1,
+    "folders": [
+        {
+            "id": "workouts",
+            "name": "id-workouts",
+            "icon": "ios-fitness-outline",
+            "accentColor": "#4CAF50",
+            "type": "workout",
+            "immovable": false,
+            "fixedLast": false,
+            "screens": []
+        },
+        {
+            "id": "sleep",
+            "name": "id-sleep",
+            "icon": "ios-moon-outline",
+            "accentColor": "#9C27B0",
+            "immovable": false,
+            "fixedLast": false,
+            "screens": [
+                {
+                    "id": "sleep-overview",
+                    "name": "id-sleep-overview",
+                    "icon": "ios-moon",
+                    "qmlSource": "SleepPage.qml",
+                    "glanceProvider": "sleep",
+                    "accentColor": "#9C27B0"
+                }
+            ]
+        },
+        {
+            "id": "health",
+            "name": "id-health",
+            "icon": "ios-pulse-outline",
+            "accentColor": "#2196F3",
+            "immovable": false,
+            "fixedLast": false,
+            "screens": [
+                {
+                    "id": "body-metrics",
+                    "name": "id-body-metrics",
+                    "icon": "ios-body-outline",
+                    "qmlSource": "BodyMetricsPage.qml",
+                    "glanceProvider": "body",
+                    "accentColor": "#E91E63"
+                },
+                {
+                    "id": "readiness",
+                    "name": "id-readiness",
+                    "icon": "ios-pulse-outline",
+                    "qmlSource": "ReadinessPage.qml",
+                    "glanceProvider": "readiness",
+                    "accentColor": "#2196F3"
+                },
+                {
+                    "id": "trends",
+                    "name": "id-trends",
+                    "icon": "ios-trending-up",
+                    "qmlSource": "TrendsPage.qml",
+                    "glanceProvider": "trends",
+                    "accentColor": "#00BCD4"
+                }
+            ]
+        },
+        {
+            "id": "sensors-lab",
+            "name": "id-sensors-lab",
+            "icon": "ios-flask-outline",
+            "accentColor": "#FF9800",
+            "immovable": false,
+            "fixedLast": false,
+            "screens": [
+                {
+                    "id": "sensors-lab-detail",
+                    "name": "id-sensors-lab",
+                    "icon": "ios-flask-outline",
+                    "qmlSource": "SensorsLabPage.qml",
+                    "glanceProvider": "sensors",
+                    "accentColor": "#FF9800"
+                }
+            ]
+        },
+        {
+            "id": "settings",
+            "name": "id-settings",
+            "icon": "ios-settings-outline",
+            "accentColor": "#607D8B",
+            "immovable": true,
+            "fixedLast": true,
+            "screens": [
+                {
+                    "id": "settings-detail",
+                    "name": "id-settings",
+                    "icon": "ios-settings-outline",
+                    "qmlSource": "SettingsPage.qml",
+                    "glanceProvider": "",
+                    "accentColor": "#607D8B"
+                }
+            ]
+        }
+    ]
+}

@@ -6,79 +6,95 @@ import org.bolide.fitness 1.0
 Item {
     id: workoutActivePage
 
-    property string workoutType: WorkoutController.workoutType
-    property bool isPaused: false
+    property bool isPaused: WorkoutManager.paused
+    property var dataScreens: WorkoutManager.dataScreensForWorkout(WorkoutManager.workoutType)
 
-    // Keep screen on during workout (use MCE if available)
-    Component.onCompleted: {
-        // Request display stay on - MCE D-Bus would go here
-        // For now, we rely on the system's default behavior during active use
-    }
-
-    Component.onDestruction: {
-        // Release display lock
-    }
-
-    // Main content: swipeable data screens
-    ListView {
+    // ── Swipeable data screens (vertical scroll) ─────────────────────────
+    PathView {
         id: dataScreensView
         anchors.fill: parent
-        orientation: ListView.Horizontal
-        snapMode: ListView.SnapOneItem
-        highlightRangeMode: ListView.StrictlyEnforceRange
-        clip: true
+        snapMode: PathView.SnapOneItem
+        highlightRangeMode: PathView.StrictlyEnforceRange
+        preferredHighlightBegin: 0.5
+        preferredHighlightEnd: 0.5
+        flickDeceleration: 3000
+        pathItemCount: 3
         interactive: true
         currentIndex: 0
 
+        path: Path {
+            startX: workoutActivePage.width / 2
+            startY: -workoutActivePage.height * 0.5
+
+            PathLine {
+                x: workoutActivePage.width / 2
+                y: workoutActivePage.height * 1.5
+            }
+        }
+
         model: ListModel {
-            ListElement { screenType: "timer" }
-            ListElement { screenType: "hr" }
+            id: screenModel
+            Component.onCompleted: {
+                // Always have at least timer + HR
+                append({ screenFile: "DataScreenTimer.qml" })
+                append({ screenFile: "DataScreenHR.qml" })
+
+                // Add GPS screen if workout uses GPS
+                var wt = WorkoutManager.workoutType
+                if (wt === "outdoor_run" || wt === "outdoor_walk" ||
+                    wt === "hike" || wt === "ultra_hike" || wt === "cycling") {
+                    append({ screenFile: "DataScreenGPS.qml" })
+                }
+
+                // Add elevation screen for hikes
+                if (wt === "hike" || wt === "ultra_hike") {
+                    append({ screenFile: "DataScreenElevation.qml" })
+                }
+            }
         }
 
         delegate: Item {
             width: dataScreensView.width
             height: dataScreensView.height
+            opacity: PathView.isCurrentItem ? 1.0 : 0.3
+            scale: PathView.isCurrentItem ? 1.0 : 0.85
+
+            Behavior on opacity { NumberAnimation { duration: 200 } }
+            Behavior on scale { NumberAnimation { duration: 200 } }
 
             Loader {
                 anchors.fill: parent
-                source: {
-                    if (screenType === "timer") {
-                        return "DataScreenTimer.qml"
-                    } else if (screenType === "hr") {
-                        return "DataScreenHR.qml"
-                    }
-                    return ""
-                }
+                source: screenFile
             }
         }
     }
 
-    // Page indicator for data screens
-    Row {
+    // ── Screen indicator dots (right side, vertical) ────────────────────
+    Column {
         anchors {
-            horizontalCenter: parent.horizontalCenter
-            top: parent.top
-            topMargin: Dims.h(3)
+            right: parent.right
+            rightMargin: Dims.w(2)
+            verticalCenter: parent.verticalCenter
         }
-        spacing: Dims.w(2)
+        spacing: Dims.h(1)
+        z: 10
 
         Repeater {
             model: dataScreensView.count
 
             Rectangle {
-                width: Dims.w(2)
-                height: width
+                width: Dims.w(1.5)
+                height: index === dataScreensView.currentIndex ? Dims.h(4) : Dims.h(2)
                 radius: width / 2
-                color: index === dataScreensView.currentIndex ? "white" : "#80FFFFFF"
-
-                Behavior on color {
-                    ColorAnimation { duration: 200 }
+                color: index === dataScreensView.currentIndex ? "white" : "#40FFFFFF"
+                Behavior on height {
+                    NumberAnimation { duration: 150; easing.type: Easing.OutQuad }
                 }
             }
         }
     }
 
-    // Control buttons overlay at bottom
+    // ── Bottom controls overlay ─────────────────────────────────────────
     Item {
         id: controlsOverlay
         anchors {
@@ -87,6 +103,7 @@ Item {
             bottom: parent.bottom
         }
         height: Dims.h(20)
+        z: 10
 
         Rectangle {
             anchors.fill: parent
@@ -98,47 +115,37 @@ Item {
             anchors.centerIn: parent
             spacing: Dims.w(8)
 
-            // Pause/Resume button
+            // Pause / Resume
             Column {
                 spacing: Dims.h(1)
 
                 IconButton {
-                    id: pauseButton
                     anchors.horizontalCenter: parent.horizontalCenter
                     iconName: isPaused ? "ios-play-outline" : "ios-pause-outline"
                     iconColor: "white"
-
                     onClicked: {
-                        isPaused = !isPaused
-                        // In a real implementation, this would pause sensor logging
+                        if (isPaused) WorkoutManager.resumeWorkout()
+                        else WorkoutManager.pauseWorkout()
                     }
                 }
 
                 Label {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    text: isPaused ? 
-                        //% "Resume"
-                        qsTrId("id-resume") : 
-                        //% "Pause"
-                        qsTrId("id-pause")
+                    text: isPaused ? qsTrId("id-resume") : qsTrId("id-pause")
                     font.pixelSize: Dims.l(3)
                     color: "white"
                 }
             }
 
-            // Stop button
+            // Stop
             Column {
                 spacing: Dims.h(1)
 
                 IconButton {
-                    id: stopButton
                     anchors.horizontalCenter: parent.horizontalCenter
                     iconName: "ios-square-outline"
                     iconColor: "#FF5252"
-
-                    onClicked: {
-                        stopRemorse.start()
-                    }
+                    onClicked: stopRemorse.start()
                 }
 
                 Label {
@@ -156,38 +163,6 @@ Item {
         id: stopRemorse
         //% "Stopping..."
         action: qsTrId("id-stopping")
-        onTriggered: {
-            isPaused = false
-            WorkoutController.stopWorkout()
-        }
-    }
-
-    // Long press anywhere to open settings
-    MouseArea {
-        anchors.fill: parent
-        propagateComposedEvents: true
-        z: -1
-
-        onPressAndHold: {
-            settingsRequested()
-        }
-
-        onPressed: mouse.accepted = false
-        onReleased: mouse.accepted = false
-        onClicked: mouse.accepted = false
-    }
-
-    signal settingsRequested()
-
-    // Handle settings request by switching to settings page
-    onSettingsRequested: {
-        // Find parent SwipeView
-        var swipeView = parent
-        while (swipeView && !swipeView.hasOwnProperty("currentIndex")) {
-            swipeView = swipeView.parent
-        }
-        if (swipeView) {
-            swipeView.currentIndex = 2
-        }
+        onTriggered: WorkoutManager.stopWorkout()
     }
 }

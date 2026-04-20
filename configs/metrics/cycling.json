@@ -1,0 +1,88 @@
+[
+    {
+        "id": "cycling_vo2max",
+        "name": "Cycling VO2max",
+        "nameKey": "id-cycling-vo2max",
+        "icon": "ios-bicycle-outline",
+        "category": "cycling",
+        "unit": "ml/kg/min",
+        "minValue": 15,
+        "maxValue": 90,
+        "accentColor": "#FF5722",
+        "glanceFormat": "value",
+        "pluginId": "cycling_vo2max",
+        "sensorsUsed": ["heart_rate"],
+        "dependsOn": [],
+        "trendMetricId": "vo2max",
+        "displayFields": [
+            { "id": "vo2max", "label": "VO2max", "type": "value", "primary": true },
+            { "id": "trend_90d", "label": "90-Day Trend", "type": "sparkline" }
+        ],
+        "formula": "FirstBeat model (requires power meter)",
+        "notes": "Requires external power meter for accuracy; falls back to HR estimate"
+    },
+    {
+        "id": "ftp",
+        "name": "FTP (Functional Threshold Power)",
+        "nameKey": "id-ftp",
+        "icon": "ios-flash-outline",
+        "category": "cycling",
+        "unit": "W",
+        "minValue": 50,
+        "maxValue": 500,
+        "accentColor": "#FF9800",
+        "glanceFormat": "value",
+        "pluginId": "ftp",
+        "sensorsUsed": ["heart_rate"],
+        "dependsOn": [],
+        "trendMetricId": "",
+        "displayFields": [
+            { "id": "ftp_value", "label": "FTP", "type": "value", "primary": true },
+            { "id": "watts_per_kg", "label": "W/kg", "type": "value" },
+            { "id": "trend", "label": "Trend", "type": "sparkline" }
+        ],
+        "formula": "95% of best 20-min power"
+    },
+    {
+        "id": "grit_score",
+        "name": "Grit (Trail Roughness)",
+        "nameKey": "id-grit",
+        "icon": "ios-trail-sign-outline",
+        "category": "cycling",
+        "unit": "",
+        "minValue": 0,
+        "maxValue": 100,
+        "accentColor": "#795548",
+        "glanceFormat": "score",
+        "pluginId": "grit_score",
+        "sensorsUsed": ["gps", "accelerometer"],
+        "dependsOn": [],
+        "trendMetricId": "",
+        "displayFields": [
+            { "id": "grit", "label": "Grit", "type": "score", "primary": true },
+            { "id": "roughness_graph", "label": "Roughness", "type": "sparkline" }
+        ],
+        "formula": "trail_roughness_index (accelerometer variance)"
+    },
+    {
+        "id": "flow_score",
+        "name": "Flow (Riding Smoothness)",
+        "nameKey": "id-flow",
+        "icon": "ios-water-outline",
+        "category": "cycling",
+        "unit": "",
+        "minValue": 0,
+        "maxValue": 100,
+        "accentColor": "#2196F3",
+        "glanceFormat": "score",
+        "pluginId": "flow_score",
+        "sensorsUsed": ["gps", "accelerometer"],
+        "dependsOn": [],
+        "trendMetricId": "",
+        "displayFields": [
+            { "id": "flow", "label": "Flow", "type": "score", "primary": true },
+            { "id": "smoothness_graph", "label": "Smoothness", "type": "sparkline" }
+        ],
+        "formula": "smoothness_of_riding_line (inverse of lateral acceleration variance)"
+    }
+]

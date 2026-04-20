@@ -1,0 +1,18 @@
+{
+    "id": "outdoor_run",
+    "name": "Outdoor Run",
+    "icon": "ios-walk",
+    "category": "running",
+    "sort_order": 1,
+    "gps_default": true,
+    "barometer_default": true,
+    "sensors": ["heart_rate", "gps", "barometer", "step_count", "accelerometer"],
+    "data_screens": ["default_timer", "default_hr", "default_gps", "default_elevation"],
+    "metrics": ["calories", "vo2max_estimate", "hill_score", "hrv_rmssd"],
+    "power_profiles": {
+        "low_power":  { "hr_interval_ms": 5000, "gps_interval_ms": 10000, "baro_interval_ms": 10000 },
+        "balanced":   { "hr_interval_ms": 1000, "gps_interval_ms": 3000,  "baro_interval_ms": 5000  },
+        "high_perf":  { "hr_interval_ms": 1000, "gps_interval_ms": 1000,  "baro_interval_ms": 2000  },
+        "ultra":      { "hr_interval_ms": 500,  "gps_interval_ms": 1000,  "baro_interval_ms": 1000  }
+    }
+}

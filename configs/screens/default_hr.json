@@ -1,0 +1,14 @@
+{
+    "id": "default_hr",
+    "name": "Heart Rate",
+    "qml_source": "DataScreenHR.qml",
+    "fields": [
+        { "id": "hr_current", "label": "Heart Rate", "type": "integer",  "unit": "bpm" },
+        { "id": "hr_avg",     "label": "Average HR",  "type": "integer",  "unit": "bpm" },
+        { "id": "hr_max",     "label": "Max HR",      "type": "integer",  "unit": "bpm" },
+        { "id": "hr_graph",   "label": "HR Graph",    "type": "graph" }
+    ],
+    "requires_sensor": "heart_rate",
+    "always_show": true,
+    "description": "Heart-rate screen with live graph, zone colouring, average and max."
+}

@@ -1,0 +1,213 @@
+[
+    {
+        "id": "body_battery",
+        "name": "Body Battery",
+        "nameKey": "id-body-battery",
+        "icon": "ios-battery-charging-outline",
+        "category": "wellness",
+        "unit": "",
+        "minValue": 0,
+        "maxValue": 100,
+        "accentColor": "#4CAF50",
+        "glanceFormat": "score",
+        "pluginId": "body_battery",
+        "sensorsUsed": ["heart_rate", "accelerometer"],
+        "dependsOn": ["stress_score", "hrv_status"],
+        "trendMetricId": "",
+        "displayFields": [
+            { "id": "battery_level", "label": "Battery", "type": "score", "primary": true },
+            { "id": "hrv_gain", "label": "HRV Charge", "type": "value" },
+            { "id": "stress_drain", "label": "Stress Drain", "type": "value" },
+            { "id": "activity_drain", "label": "Activity Drain", "type": "value" },
+            { "id": "sleep_recharge", "label": "Sleep Recharge", "type": "value" },
+            { "id": "trend_24h", "label": "24h Trend", "type": "sparkline" }
+        ],
+        "formula": "PreviousValue + HRVGain - StressDrain - ActivityDrain + SleepRecharge"
+    },
+    {
+        "id": "stress_score",
+        "name": "Stress Score",
+        "nameKey": "id-stress-score",
+        "icon": "ios-thunderstorm-outline",
+        "category": "wellness",
+        "unit": "",
+        "minValue": 0,
+        "maxValue": 100,
+        "accentColor": "#FF5722",
+        "glanceFormat": "score",
+        "pluginId": "stress_score",
+        "sensorsUsed": ["heart_rate"],
+        "dependsOn": [],
+        "trendMetricId": "stress_index",
+        "displayFields": [
+            { "id": "stress_level", "label": "Stress", "type": "score", "primary": true },
+            { "id": "stress_zone", "label": "Zone", "type": "category" },
+            { "id": "trend_24h", "label": "24h Stress", "type": "sparkline" },
+            { "id": "rest_periods", "label": "Rest Periods", "type": "value" }
+        ],
+        "zones": [
+            { "min": 0, "max": 25, "label": "Rest", "color": "#2196F3" },
+            { "min": 26, "max": 50, "label": "Low", "color": "#4CAF50" },
+            { "min": 51, "max": 75, "label": "Medium", "color": "#FF9800" },
+            { "min": 76, "max": 100, "label": "High", "color": "#F44336" }
+        ],
+        "formula": "HRV_suppression_relative_to_baseline"
+    },
+    {
+        "id": "sleep_score",
+        "name": "Sleep Score",
+        "nameKey": "id-sleep-score",
+        "icon": "ios-moon-outline",
+        "category": "wellness",
+        "unit": "",
+        "minValue": 0,
+        "maxValue": 100,
+        "accentColor": "#9C27B0",
+        "glanceFormat": "score",
+        "pluginId": "sleep_score",
+        "sensorsUsed": ["heart_rate", "accelerometer"],
+        "dependsOn": [],
+        "trendMetricId": "sleep_quality",
+        "displayFields": [
+            { "id": "score", "label": "Score", "type": "score", "primary": true },
+            { "id": "duration", "label": "Duration", "type": "duration" },
+            { "id": "quality", "label": "Quality", "type": "percent" },
+            { "id": "recovery_metrics", "label": "Recovery", "type": "percent" },
+            { "id": "stages_bar", "label": "Stages", "type": "stacked_bar" },
+            { "id": "trend_7d", "label": "7-Day Trend", "type": "sparkline" }
+        ],
+        "formula": "(Duration*0.35) + (Quality*0.30) + (RecoveryMetrics*0.20) + (MovementPenalty*0.15)"
+    },
+    {
+        "id": "respiration_rate",
+        "name": "Respiration Rate",
+        "nameKey": "id-respiration-rate",
+        "icon": "ios-cloud-outline",
+        "category": "wellness",
+        "unit": "brpm",
+        "minValue": 6,
+        "maxValue": 40,
+        "accentColor": "#00BCD4",
+        "glanceFormat": "value",
+        "pluginId": "respiration_rate",
+        "sensorsUsed": ["heart_rate"],
+        "dependsOn": [],
+        "trendMetricId": "breathing_rate",
+        "displayFields": [
+            { "id": "rate", "label": "Breaths/min", "type": "value", "primary": true },
+            { "id": "trend_7d", "label": "7-Day Trend", "type": "sparkline" }
+        ],
+        "formula": "derived_from_RR_interval_variability"
+    },
+    {
+        "id": "pulse_ox",
+        "name": "Pulse Ox (SpO2)",
+        "nameKey": "id-pulse-ox",
+        "icon": "ios-water-outline",
+        "category": "wellness",
+        "unit": "%",
+        "minValue": 80,
+        "maxValue": 100,
+        "accentColor": "#03A9F4",
+        "glanceFormat": "percent",
+        "pluginId": "pulse_ox",
+        "sensorsUsed": ["spo2"],
+        "dependsOn": [],
+        "trendMetricId": "spo2",
+        "displayFields": [
+            { "id": "spo2_value", "label": "SpO2", "type": "percent", "primary": true },
+            { "id": "overnight_avg", "label": "Overnight Avg", "type": "percent" },
+            { "id": "trend_7d", "label": "7-Day Trend", "type": "sparkline" }
+        ],
+        "formula": "red_IR_absorption_ratio"
+    },
+    {
+        "id": "resting_heart_rate",
+        "name": "Resting Heart Rate",
+        "nameKey": "id-resting-hr",
+        "icon": "ios-heart-outline",
+        "category": "wellness",
+        "unit": "bpm",
+        "minValue": 30,
+        "maxValue": 120,
+        "accentColor": "#F44336",
+        "glanceFormat": "value",
+        "pluginId": "resting_heart_rate",
+        "sensorsUsed": ["heart_rate"],
+        "dependsOn": [],
+        "trendMetricId": "resting_hr",
+        "displayFields": [
+            { "id": "rhr", "label": "Resting HR", "type": "value", "primary": true },
+            { "id": "trend_30d", "label": "30-Day Trend", "type": "sparkline" },
+            { "id": "baseline", "label": "Baseline", "type": "value" }
+        ],
+        "formula": "lowest_rolling_5min_HR_during_sleep"
+    },
+    {
+        "id": "skin_temp_deviation",
+        "name": "Skin Temperature",
+        "nameKey": "id-skin-temp",
+        "icon": "ios-thermometer-outline",
+        "category": "wellness",
+        "unit": "°C",
+        "minValue": -2.0,
+        "maxValue": 2.0,
+        "accentColor": "#FF7043",
+        "glanceFormat": "deviation",
+        "pluginId": "skin_temp_deviation",
+        "sensorsUsed": ["temperature"],
+        "dependsOn": [],
+        "trendMetricId": "",
+        "displayFields": [
+            { "id": "deviation", "label": "Deviation", "type": "deviation", "primary": true },
+            { "id": "baseline", "label": "Baseline", "type": "value" },
+            { "id": "trend_7d", "label": "7-Night Trend", "type": "sparkline" }
+        ],
+        "formula": "NightTemp - BaselineTemp"
+    },
+    {
+        "id": "sleep_debt",
+        "name": "Sleep Debt",
+        "nameKey": "id-sleep-debt",
+        "icon": "ios-bed-outline",
+        "category": "wellness",
+        "unit": "min",
+        "minValue": -120,
+        "maxValue": 480,
+        "accentColor": "#7E57C2",
+        "glanceFormat": "duration",
+        "pluginId": "sleep_debt",
+        "sensorsUsed": ["heart_rate", "accelerometer"],
+        "dependsOn": [],
+        "trendMetricId": "sleep_duration",
+        "displayFields": [
+            { "id": "debt_minutes", "label": "Debt", "type": "duration", "primary": true },
+            { "id": "ideal_vs_actual", "label": "Ideal vs Actual", "type": "comparison" },
+            { "id": "trend_7d", "label": "7-Day History", "type": "sparkline" }
+        ],
+        "formula": "IdealSleep - ActualSleep(7-day rolling)"
+    },
+    {
+        "id": "cognitive_readiness",
+        "name": "Cognitive Readiness",
+        "nameKey": "id-cognitive-readiness",
+        "icon": "ios-bulb-outline",
+        "category": "wellness",
+        "unit": "",
+        "minValue": 0,
+        "maxValue": 100,
+        "accentColor": "#AB47BC",
+        "glanceFormat": "score",
+        "pluginId": "cognitive_readiness",
+        "sensorsUsed": ["heart_rate", "accelerometer"],
+        "dependsOn": ["sleep_score", "hrv_status", "stress_score"],
+        "trendMetricId": "",
+        "displayFields": [
+            { "id": "score", "label": "Score", "type": "score", "primary": true },
+            { "id": "hrv_component", "label": "HRV Factor", "type": "percent" },
+            { "id": "sleep_component", "label": "Sleep Factor", "type": "percent" },
+            { "id": "stress_component", "label": "Stress Factor", "type": "percent" }
+        ],
+        "formula": "(HRV*0.4) + (SleepQuality*0.4) - (Stress*0.2)"
+    }
+]

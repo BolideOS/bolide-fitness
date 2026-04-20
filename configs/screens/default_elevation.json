@@ -1,0 +1,14 @@
+{
+    "id": "default_elevation",
+    "name": "Elevation",
+    "qml_source": "DataScreenElevation.qml",
+    "fields": [
+        { "id": "altitude",   "label": "Altitude",    "type": "distance", "unit": "m" },
+        { "id": "elev_gain",  "label": "Elev Gain",   "type": "distance", "unit": "m" },
+        { "id": "avg_grade",  "label": "Avg Grade",   "type": "percent",  "unit": "%" },
+        { "id": "elev_graph", "label": "Elev Profile", "type": "graph" }
+    ],
+    "requires_sensor": "barometer",
+    "always_show": false,
+    "description": "Elevation profile screen with altitude, gain, grade, and sparkline graph."
+}

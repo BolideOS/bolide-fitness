@@ -2,32 +2,38 @@ import QtQuick 2.9
 import org.asteroid.controls 1.0
 import org.asteroid.utils 1.0
 import org.bolide.fitness 1.0
+import Nemo.Configuration 1.0
 
 Item {
     id: hrScreen
 
+    ConfigurationGroup {
+        id: zoneSettings
+        path: "/bolide-fitness/settings"
+        property int zone1Max: 100
+        property int zone2Max: 120
+        property int zone3Max: 140
+        property int zone4Max: 160
+    }
+
     function getHRZone(bpm) {
-        if (bpm < 100) return { name: qsTrId("id-zone-warmup"), color: "#9E9E9E" }
-        if (bpm < 120) return { name: qsTrId("id-zone-fat-burn"), color: "#4CAF50" }
-        if (bpm < 140) return { name: qsTrId("id-zone-cardio"), color: "#FF9800" }
-        if (bpm < 160) return { name: qsTrId("id-zone-peak"), color: "#F44336" }
+        if (bpm < zoneSettings.zone1Max) return { name: qsTrId("id-zone-warmup"),   color: "#9E9E9E" }
+        if (bpm < zoneSettings.zone2Max) return { name: qsTrId("id-zone-fat-burn"), color: "#4CAF50" }
+        if (bpm < zoneSettings.zone3Max) return { name: qsTrId("id-zone-cardio"),   color: "#FF9800" }
+        if (bpm < zoneSettings.zone4Max) return { name: qsTrId("id-zone-peak"),     color: "#F44336" }
         return { name: qsTrId("id-zone-maximum"), color: "#C62828" }
     }
 
-    property var currentZone: getHRZone(WorkoutController.heartRate)
+    property var currentZone: getHRZone(WorkoutManager.heartRate)
 
-    // Background
-    Rectangle {
-        anchors.fill: parent
-        color: "#000000"
-    }
+    Rectangle { anchors.fill: parent; color: "#000000" }
 
     Column {
         anchors.fill: parent
         anchors.margins: Dims.w(4)
         spacing: Dims.h(2)
 
-        // Top section: Current HR
+        // ── Current HR display ──────────────────────────────────────────
         Item {
             width: parent.width
             height: Dims.h(30)
@@ -36,14 +42,13 @@ Item {
                 anchors.centerIn: parent
                 spacing: Dims.h(1)
 
-                // Large HR number
                 Row {
                     anchors.horizontalCenter: parent.horizontalCenter
                     spacing: Dims.w(2)
 
                     Label {
-                        text: WorkoutController.heartRate > 0 ? WorkoutController.heartRate.toString() : "--"
-                        font.pixelSize: Dims.l(24)
+                        text: WorkoutManager.heartRate > 0 ? WorkoutManager.heartRate.toString() : "--"
+                        font.pixelSize: Dims.l(22)
                         font.bold: true
                         color: currentZone.color
                         anchors.verticalCenter: parent.verticalCenter
@@ -59,39 +64,28 @@ Item {
                     }
                 }
 
-                // HR zone indicator
                 Rectangle {
                     anchors.horizontalCenter: parent.horizontalCenter
                     width: Dims.w(40)
-                    height: Dims.h(6)
+                    height: Dims.h(5)
                     radius: height / 2
                     color: currentZone.color
 
                     Label {
                         anchors.centerIn: parent
                         text: currentZone.name
-                        font.pixelSize: Dims.l(3.5)
+                        font.pixelSize: Dims.l(3)
                         font.bold: true
                         color: "white"
                     }
                 }
-
-                // Heart icon
-                Icon {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    width: Dims.w(8)
-                    height: width
-                    name: "ios-heart"
-                    color: currentZone.color
-                    opacity: 0.8
-                }
             }
         }
 
-        // HR Graph
+        // ── HR Graph ────────────────────────────────────────────────────
         Item {
             width: parent.width
-            height: Dims.h(45)
+            height: Dims.h(42)
 
             Rectangle {
                 anchors.fill: parent
@@ -106,204 +100,83 @@ Item {
                 anchors.fill: parent
                 anchors.margins: Dims.w(2)
 
-                property var hrData: WorkoutController.hrHistory
-
-                onHrDataChanged: {
-                    requestPaint()
-                }
+                property var hrData: WorkoutManager.hrHistory
+                onHrDataChanged: requestPaint()
 
                 onPaint: {
                     var ctx = getContext("2d")
                     ctx.reset()
 
-                    // Handle empty data case
-                    if (!hrData || hrData.length === 0) {
+                    if (!hrData || hrData.length < 2) {
                         ctx.fillStyle = "#80FFFFFF"
                         ctx.font = "12px sans-serif"
                         ctx.textAlign = "center"
-                        ctx.fillText("No HR data yet", width / 2, height / 2)
+                        ctx.fillText("Waiting for HR data...", width / 2, height / 2)
                         return
                     }
 
-                    if (hrData.length < 2) {
-                        return
-                    }
-
-                    // Calculate min/max for auto-scaling
-                    var minBpm = 999
-                    var maxBpm = 0
-                    var hasValidData = false
-                    
+                    var minBpm = 999, maxBpm = 0
                     for (var i = 0; i < hrData.length; i++) {
-                        var entry = hrData[i]
-                        if (entry && entry.bpm && entry.bpm > 0) {
-                            minBpm = Math.min(minBpm, entry.bpm)
-                            maxBpm = Math.max(maxBpm, entry.bpm)
-                            hasValidData = true
-                        }
+                        var b = hrData[i].bpm
+                        if (b > 0) { minBpm = Math.min(minBpm, b); maxBpm = Math.max(maxBpm, b) }
                     }
+                    if (maxBpm === 0) return
 
-                    if (!hasValidData) {
-                        return
+                    minBpm = Math.max(40, minBpm - 10)
+                    maxBpm = Math.min(200, maxBpm + 10)
+                    var range = maxBpm - minBpm
+                    if (range < 20) { range = 20; minBpm = Math.max(40, (minBpm+maxBpm)/2 - 10); maxBpm = minBpm + 20 }
+
+                    var w = width, h = height
+
+                    // Zone backgrounds
+                    var zones = [
+                        [40, zoneSettings.zone1Max, "#9E9E9E"],
+                        [zoneSettings.zone1Max, zoneSettings.zone2Max, "#4CAF50"],
+                        [zoneSettings.zone2Max, zoneSettings.zone3Max, "#FF9800"],
+                        [zoneSettings.zone3Max, zoneSettings.zone4Max, "#F44336"],
+                        [zoneSettings.zone4Max, 200, "#C62828"]
+                    ]
+                    for (var z = 0; z < zones.length; z++) {
+                        var y1 = h - ((zones[z][1] - minBpm) / range) * h
+                        var y2 = h - ((zones[z][0] - minBpm) / range) * h
+                        ctx.fillStyle = zones[z][2]
+                        ctx.globalAlpha = 0.08
+                        ctx.fillRect(0, Math.max(0,y1), w, Math.min(h,y2) - Math.max(0,y1))
                     }
+                    ctx.globalAlpha = 1.0
 
-                    // Add padding to Y axis
-                    var padding = 10
-                    minBpm = Math.max(40, minBpm - padding)
-                    maxBpm = Math.min(200, maxBpm + padding)
-                    var bpmRange = maxBpm - minBpm
-                    
-                    // Ensure minimum range to avoid division by zero
-                    if (bpmRange < 20) {
-                        bpmRange = 20
-                        var midBpm = (minBpm + maxBpm) / 2
-                        minBpm = Math.max(40, midBpm - 10)
-                        maxBpm = minBpm + 20
-                    }
-
-                    var w = width
-                    var h = height
-
-                    // Draw zone backgrounds
-                    function drawZoneRect(zoneMinBpm, zoneMaxBpm, color) {
-                        var y1 = h - ((zoneMaxBpm - minBpm) / bpmRange) * h
-                        var y2 = h - ((zoneMinBpm - minBpm) / bpmRange) * h
-                        ctx.fillStyle = color
-                        ctx.globalAlpha = 0.1
-                        ctx.fillRect(0, y1, w, y2 - y1)
-                        ctx.globalAlpha = 1.0
-                    }
-
-                    drawZoneRect(40, 100, "#9E9E9E")
-                    drawZoneRect(100, 120, "#4CAF50")
-                    drawZoneRect(120, 140, "#FF9800")
-                    drawZoneRect(140, 160, "#F44336")
-                    drawZoneRect(160, 200, "#C62828")
-
-                    // Draw grid lines
+                    // Grid
                     ctx.strokeStyle = "#333333"
                     ctx.lineWidth = 1
-                    for (var bpm = Math.ceil(minBpm / 20) * 20; bpm <= maxBpm; bpm += 20) {
-                        var y = h - ((bpm - minBpm) / bpmRange) * h
-                        ctx.beginPath()
-                        ctx.moveTo(0, y)
-                        ctx.lineTo(w, y)
-                        ctx.stroke()
+                    for (var g = Math.ceil(minBpm/20)*20; g <= maxBpm; g += 20) {
+                        var gy = h - ((g - minBpm) / range) * h
+                        ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(w, gy); ctx.stroke()
                     }
 
-                    // Draw HR line graph
+                    // HR line
                     ctx.strokeStyle = "#FF5252"
                     ctx.lineWidth = 2
                     ctx.lineJoin = "round"
-                    ctx.lineCap = "round"
-
                     ctx.beginPath()
-                    var firstPoint = true
-                    var dataPointCount = Math.max(1, hrData.length - 1)
-                    
-                    for (var idx = 0; idx < hrData.length; idx++) {
-                        var dataPoint = hrData[idx]
-                        if (!dataPoint || !dataPoint.bpm || dataPoint.bpm <= 0) continue
-
-                        var x = (idx / dataPointCount) * w
-                        var yVal = h - ((dataPoint.bpm - minBpm) / bpmRange) * h
-
-                        // Clamp to canvas bounds
-                        yVal = Math.max(0, Math.min(h, yVal))
-
-                        if (firstPoint) {
-                            ctx.moveTo(x, yVal)
-                            firstPoint = false
-                        } else {
-                            ctx.lineTo(x, yVal)
-                        }
+                    var first = true, n = hrData.length - 1
+                    for (var j = 0; j < hrData.length; j++) {
+                        if (hrData[j].bpm <= 0) continue
+                        var x = (j / Math.max(1, n)) * w
+                        var y = h - ((hrData[j].bpm - minBpm) / range) * h
+                        y = Math.max(0, Math.min(h, y))
+                        if (first) { ctx.moveTo(x, y); first = false } else { ctx.lineTo(x, y) }
                     }
-                    
-                    if (!firstPoint) {
+                    if (!first) {
                         ctx.stroke()
-
-                        // Fill area under line
-                        ctx.lineTo(w, h)
-                        ctx.lineTo(0, h)
-                        ctx.closePath()
-                        ctx.fillStyle = "#FF5252"
-                        ctx.globalAlpha = 0.2
-                        ctx.fill()
-                        ctx.globalAlpha = 1.0
+                        ctx.lineTo(w, h); ctx.lineTo(0, h); ctx.closePath()
+                        ctx.fillStyle = "#FF5252"; ctx.globalAlpha = 0.15; ctx.fill()
                     }
                 }
-            }
-
-            // Y-axis labels
-            Column {
-                anchors {
-                    left: parent.left
-                    top: parent.top
-                    bottom: parent.bottom
-                    leftMargin: Dims.w(1)
-                    topMargin: Dims.h(1)
-                    bottomMargin: Dims.h(1)
-                }
-                spacing: 0
-
-                Repeater {
-                    model: 3
-
-                    Label {
-                        text: {
-                            var hrData = WorkoutController.hrHistory
-                            if (!hrData || hrData.length < 2) return ""
-                            
-                            var minBpm = 999
-                            var maxBpm = 0
-                            var hasValidData = false
-                            
-                            for (var i = 0; i < hrData.length; i++) {
-                                if (hrData[i] && hrData[i].bpm && hrData[i].bpm > 0) {
-                                    minBpm = Math.min(minBpm, hrData[i].bpm)
-                                    maxBpm = Math.max(maxBpm, hrData[i].bpm)
-                                    hasValidData = true
-                                }
-                            }
-                            
-                            if (!hasValidData) return ""
-                            
-                            var padding = 10
-                            minBpm = Math.max(40, minBpm - padding)
-                            maxBpm = Math.min(200, maxBpm + padding)
-                            var bpmRange = maxBpm - minBpm
-                            if (bpmRange < 20) {
-                                bpmRange = 20
-                                var midBpm = (minBpm + maxBpm) / 2
-                                minBpm = Math.max(40, midBpm - 10)
-                                maxBpm = minBpm + 20
-                            }
-                            
-                            if (index === 0) return Math.round(maxBpm).toString()
-                            if (index === 1) return Math.round((minBpm + maxBpm) / 2).toString()
-                            return Math.round(minBpm).toString()
-                        }
-                        font.pixelSize: Dims.l(2.5)
-                        color: "#80FFFFFF"
-                    }
-                }
-            }
-
-            // Time axis label
-            Label {
-                anchors {
-                    bottom: parent.bottom
-                    right: parent.right
-                    margins: Dims.w(2)
-                }
-                //% "Last 30 min"
-                text: qsTrId("id-hr-graph-timespan")
-                font.pixelSize: Dims.l(2.5)
-                color: "#80FFFFFF"
             }
         }
 
-        // Bottom stats row
+        // ── Stats row ───────────────────────────────────────────────────
         Row {
             width: parent.width
             height: Dims.h(12)
@@ -316,17 +189,13 @@ Item {
                 Label {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: {
-                        var hrData = WorkoutController.hrHistory
-                        if (!hrData || hrData.length === 0) return "--"
-                        var sum = 0
-                        var count = 0
-                        for (var i = 0; i < hrData.length; i++) {
-                            if (hrData[i] && hrData[i].bpm && hrData[i].bpm > 0) {
-                                sum += hrData[i].bpm
-                                count++
-                            }
+                        var d = WorkoutManager.hrHistory
+                        if (!d || d.length === 0) return "--"
+                        var sum = 0, cnt = 0
+                        for (var i = 0; i < d.length; i++) {
+                            if (d[i].bpm > 0) { sum += d[i].bpm; cnt++ }
                         }
-                        return count > 0 ? Math.round(sum / count).toString() : "--"
+                        return cnt > 0 ? Math.round(sum / cnt).toString() : "--"
                     }
                     font.pixelSize: Dims.l(7)
                     font.bold: true
@@ -349,15 +218,13 @@ Item {
                 Label {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: {
-                        var hrData = WorkoutController.hrHistory
-                        if (!hrData || hrData.length === 0) return "--"
-                        var maxHr = 0
-                        for (var i = 0; i < hrData.length; i++) {
-                            if (hrData[i] && hrData[i].bpm && hrData[i].bpm > 0) {
-                                maxHr = Math.max(maxHr, hrData[i].bpm)
-                            }
+                        var d = WorkoutManager.hrHistory
+                        if (!d || d.length === 0) return "--"
+                        var mx = 0
+                        for (var i = 0; i < d.length; i++) {
+                            mx = Math.max(mx, d[i].bpm)
                         }
-                        return maxHr > 0 ? maxHr.toString() : "--"
+                        return mx > 0 ? mx.toString() : "--"
                     }
                     font.pixelSize: Dims.l(7)
                     font.bold: true

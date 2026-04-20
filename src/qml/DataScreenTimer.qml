@@ -10,49 +10,16 @@ Item {
         var h = Math.floor(seconds / 3600)
         var m = Math.floor((seconds % 3600) / 60)
         var s = seconds % 60
-        
-        function pad(n) {
-            return n < 10 ? "0" + n : "" + n
-        }
-        
-        if (h > 0) {
-            return pad(h) + ":" + pad(m) + ":" + pad(s)
-        }
-        return pad(m) + ":" + pad(s)
+        function pad(n) { return n < 10 ? "0" + n : "" + n }
+        return h > 0 ? pad(h) + ":" + pad(m) + ":" + pad(s) : pad(m) + ":" + pad(s)
     }
 
-    function getWorkoutIcon(type) {
-        var types = WorkoutController.workoutTypes()
-        for (var i = 0; i < types.length; i++) {
-            if (types[i].id === type) {
-                return types[i].icon
-            }
-        }
-        return "ios-fitness-outline"
-    }
+    Rectangle { anchors.fill: parent; color: "#000000" }
 
-    function getWorkoutName(type) {
-        var types = WorkoutController.workoutTypes()
-        for (var i = 0; i < types.length; i++) {
-            if (types[i].id === type) {
-                return types[i].name
-            }
-        }
-        return type
-    }
-
-    // Background
-    Rectangle {
-        anchors.fill: parent
-        color: "#000000"
-    }
-
-    // Circular layout
     Item {
-        id: circularLayout
         anchors.fill: parent
 
-        // Workout type icon at top
+        // Workout type icon + name
         Column {
             anchors {
                 horizontalCenter: parent.horizontalCenter
@@ -63,33 +30,31 @@ Item {
 
             Icon {
                 anchors.horizontalCenter: parent.horizontalCenter
-                width: Dims.w(12)
+                width: Dims.w(10)
                 height: width
-                name: getWorkoutIcon(WorkoutController.workoutType)
+                name: WorkoutManager.workoutIcon
                 color: "#4CAF50"
             }
 
             Label {
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: getWorkoutName(WorkoutController.workoutType)
-                font.pixelSize: Dims.l(4)
+                text: WorkoutManager.workoutName
+                font.pixelSize: Dims.l(3.5)
                 color: "#4CAF50"
-                horizontalAlignment: Text.AlignHCenter
             }
         }
 
-        // Large elapsed time in center
+        // Large elapsed time
         Column {
             anchors.centerIn: parent
             spacing: Dims.h(0.5)
 
             Label {
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: formatTime(WorkoutController.elapsedSeconds)
+                text: formatTime(WorkoutManager.elapsedSeconds)
                 font.pixelSize: Dims.l(18)
                 font.bold: true
                 color: "white"
-                horizontalAlignment: Text.AlignHCenter
             }
 
             Label {
@@ -98,53 +63,28 @@ Item {
                 text: qsTrId("id-elapsed-time")
                 font.pixelSize: Dims.l(3)
                 color: "#80FFFFFF"
-                horizontalAlignment: Text.AlignHCenter
             }
         }
 
-        // Bottom metrics row
+        // Bottom metrics
         Row {
             anchors {
                 horizontalCenter: parent.horizontalCenter
                 bottom: parent.bottom
                 bottomMargin: Dims.h(25)
             }
-            spacing: Dims.w(8)
+            spacing: Dims.w(6)
 
-            // Calories (left)
+            // Distance
             Column {
                 spacing: Dims.h(0.5)
 
                 Label {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    text: Math.floor(WorkoutController.elapsedSeconds / 60 * 8.5).toString()
-                    font.pixelSize: Dims.l(8)
-                    font.bold: true
-                    color: "#FF9800"
-                    horizontalAlignment: Text.AlignHCenter
-                }
-
-                Label {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    //% "Cal"
-                    text: qsTrId("id-calories")
-                    font.pixelSize: Dims.l(3)
-                    color: "#80FFFFFF"
-                    horizontalAlignment: Text.AlignHCenter
-                }
-            }
-
-            // Distance (right)
-            Column {
-                spacing: Dims.h(0.5)
-
-                Label {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    text: (WorkoutController.elapsedSeconds / 600).toFixed(2)
-                    font.pixelSize: Dims.l(8)
+                    text: (WorkoutManager.distance / 1000).toFixed(2)
+                    font.pixelSize: Dims.l(7)
                     font.bold: true
                     color: "#2196F3"
-                    horizontalAlignment: Text.AlignHCenter
                 }
 
                 Label {
@@ -153,12 +93,53 @@ Item {
                     text: qsTrId("id-distance-km")
                     font.pixelSize: Dims.l(3)
                     color: "#80FFFFFF"
-                    horizontalAlignment: Text.AlignHCenter
+                }
+            }
+
+            // Calories
+            Column {
+                spacing: Dims.h(0.5)
+
+                Label {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: WorkoutManager.calories.toString()
+                    font.pixelSize: Dims.l(7)
+                    font.bold: true
+                    color: "#FF9800"
+                }
+
+                Label {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    //% "cal"
+                    text: qsTrId("id-calories")
+                    font.pixelSize: Dims.l(3)
+                    color: "#80FFFFFF"
+                }
+            }
+
+            // Steps
+            Column {
+                spacing: Dims.h(0.5)
+
+                Label {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: WorkoutManager.steps.toString()
+                    font.pixelSize: Dims.l(7)
+                    font.bold: true
+                    color: "#9C27B0"
+                }
+
+                Label {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    //% "steps"
+                    text: qsTrId("id-steps")
+                    font.pixelSize: Dims.l(3)
+                    color: "#80FFFFFF"
                 }
             }
         }
 
-        // Pace at bottom center
+        // Pace
         Column {
             anchors {
                 horizontalCenter: parent.horizontalCenter
@@ -170,19 +151,17 @@ Item {
             Label {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: {
-                    var distance = WorkoutController.elapsedSeconds / 600
-                    if (distance > 0) {
-                        var paceMinPerKm = WorkoutController.elapsedSeconds / 60 / distance
-                        var paceMin = Math.floor(paceMinPerKm)
-                        var paceSec = Math.floor((paceMinPerKm - paceMin) * 60)
+                    var pace = WorkoutManager.currentPace
+                    if (pace > 0 && pace < 3600) {
+                        var paceMin = Math.floor(pace / 60)
+                        var paceSec = Math.floor(pace % 60)
                         return paceMin + ":" + (paceSec < 10 ? "0" : "") + paceSec
                     }
                     return "--:--"
                 }
                 font.pixelSize: Dims.l(6)
                 font.bold: true
-                color: "#9C27B0"
-                horizontalAlignment: Text.AlignHCenter
+                color: "#00BCD4"
             }
 
             Label {
@@ -191,23 +170,22 @@ Item {
                 text: qsTrId("id-pace")
                 font.pixelSize: Dims.l(3)
                 color: "#80FFFFFF"
-                horizontalAlignment: Text.AlignHCenter
             }
         }
 
-        // Active profile indicator (subtle, top-right corner)
+        // Profile indicator
         Label {
             anchors {
                 right: parent.right
                 top: parent.top
                 margins: Dims.w(2)
             }
-            text: WorkoutController.activeProfileId
+            text: WorkoutManager.activeProfileId
             font.pixelSize: Dims.l(2.5)
             color: "#40FFFFFF"
-            horizontalAlignment: Text.AlignRight
             elide: Text.ElideMiddle
             width: Dims.w(30)
+            horizontalAlignment: Text.AlignRight
         }
     }
 }

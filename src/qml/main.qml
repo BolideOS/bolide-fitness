@@ -8,168 +8,200 @@ Application {
     centerColor: "#1B5E20"
     outerColor: "#0A1F0B"
 
-    property bool workoutInProgress: WorkoutController.workoutActive
+    property bool workoutActive: WorkoutManager.active
 
-    onWorkoutInProgressChanged: {
-        if (workoutInProgress) {
-            pageView.currentIndex = 1
-        } else {
-            pageView.currentIndex = 0
+    // ── Navigation state machine ────────────────────────────────────────
+    // States: "l1" (folder browse), "l2" (detail screens), "workout" (active workout)
+    property string navState: "l1"
+    property string activeFolderId: ""
+    property string activeWorkoutType: ""
+
+    onWorkoutActiveChanged: {
+        if (workoutActive) {
+            navState = "workout"
+        } else if (navState === "workout") {
+            navState = "l1"
         }
     }
 
-    ListView {
-        id: pageView
+    // ── L1: Vertical folder navigation (PathView, infinite loop) ────────
+    PathView {
+        id: folderView
         anchors.fill: parent
-        orientation: ListView.Horizontal
-        snapMode: ListView.SnapOneItem
-        highlightRangeMode: ListView.StrictlyEnforceRange
-        flickDeceleration: 5000
-        flickableDirection: Flickable.HorizontalFlick
-        boundsBehavior: Flickable.StopAtBounds
-        interactive: !workoutInProgress
-        model: 3
-        clip: true
+        visible: navState === "l1"
+        interactive: navState === "l1"
+
+        model: ScreenRegistry.folders
+        pathItemCount: 3
+        flickDeceleration: 3000
+        snapMode: PathView.SnapOneItem
+        highlightRangeMode: PathView.StrictlyEnforceRange
+        preferredHighlightBegin: 0.5
+        preferredHighlightEnd: 0.5
+
+        path: Path {
+            startX: app.width / 2
+            startY: -app.height * 0.5
+
+            PathLine {
+                x: app.width / 2
+                y: app.height * 1.5
+            }
+        }
 
         delegate: Item {
-            width: pageView.width
-            height: pageView.height
+            width: app.width
+            height: app.height
+            opacity: PathView.isCurrentItem ? 1.0 : 0.4
+            scale: PathView.isCurrentItem ? 1.0 : 0.85
 
-            // Page 0: Workout Type Selector
-            Item {
+            Behavior on opacity { NumberAnimation { duration: 200 } }
+            Behavior on scale { NumberAnimation { duration: 200 } }
+
+            Loader {
+                id: folderLoader
                 anchors.fill: parent
-                visible: index === 0
-
-                PageHeader {
-                    id: header
-                    //% "Workout"
-                    text: qsTrId("id-workout-title")
+                source: {
+                    if (modelData.type === "workout")
+                        return "WorkoutFolderPage.qml"
+                    else
+                        return "FolderGlance.qml"
                 }
+                asynchronous: !PathView.isCurrentItem
 
-                Flickable {
-                    id: flickable
-                    anchors {
-                        top: header.bottom
-                        left: parent.left
-                        right: parent.right
-                        bottom: parent.bottom
-                    }
-                    contentHeight: grid.height + Dims.h(4)
-                    clip: true
+                property var folderData: modelData
+            }
 
-                    Grid {
-                        id: grid
-                        anchors {
-                            left: parent.left
-                            right: parent.right
-                            top: parent.top
-                            leftMargin: Dims.w(4)
-                            rightMargin: Dims.w(4)
-                            topMargin: Dims.h(2)
-                        }
-                        columns: 3
-                        spacing: Dims.w(2)
-                        rowSpacing: Dims.h(2)
-
-                    property var workoutTypes: WorkoutController.workoutTypes()
-                    property real cellSize: (width - spacing * (columns - 1)) / columns
-
-                    Repeater {
-                        model: grid.workoutTypes
-
-                        Item {
-                            width: grid.cellSize
-                            height: grid.cellSize
-
-                            Rectangle {
-                                id: cellBg
-                                anchors.fill: parent
-                                color: cellMouseArea.pressed ? "#2E7D32" : "#1B5E20"
-                                radius: Dims.w(2)
-                                border.width: Dims.w(0.5)
-                                border.color: "#4CAF50"
-
-                                Behavior on color {
-                                    ColorAnimation { duration: 150 }
-                                }
-                            }
-
-                            Column {
-                                anchors.centerIn: parent
-                                width: parent.width * 0.9
-                                spacing: Dims.h(1)
-
-                                Icon {
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    width: Math.min(parent.width * 0.5, Dims.w(12))
-                                    height: width
-                                    name: modelData.icon
-                                    color: "white"
-                                }
-
-                                Label {
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    width: parent.width
-                                    text: modelData.name
-                                    font.pixelSize: Dims.l(3.5)
-                                    color: "white"
-                                    horizontalAlignment: Text.AlignHCenter
-                                    wrapMode: Text.WordWrap
-                                    maximumLineCount: 2
-                                    elide: Text.ElideRight
-                                }
-                            }
-
-                            MouseArea {
-                                id: cellMouseArea
-                                anchors.fill: parent
-
-                                onClicked: {
-                                    if (WorkoutController.startWorkout(modelData.id)) {
-                                        pageView.currentIndex = 1
-                                    }
-                                }
-                            }
-                        }
+            MouseArea {
+                anchors.fill: parent
+                enabled: PathView.isCurrentItem
+                onClicked: {
+                    activeFolderId = modelData.id
+                    if (modelData.type === "workout") {
+                        // Workout folder handles its own tap (pinned items / All Workouts)
+                        // Forwarded via folderLoader
+                    } else {
+                        navState = "l2"
                     }
                 }
-            }
-
-            IconButton {
-                anchors {
-                    horizontalCenter: parent.horizontalCenter
-                    bottom: parent.bottom
-                    bottomMargin: Dims.iconButtonMargin
-                }
-                iconName: "ios-settings-outline"
-                visible: !workoutInProgress
-                onClicked: pageView.currentIndex = 2
-            }
-        }
-
-            // Page 1: Active Workout
-            WorkoutActivePage {
-                anchors.fill: parent
-                visible: index === 1
-            }
-
-            // Page 2: Settings
-            WorkoutSettingsPage {
-                anchors.fill: parent
-                visible: index === 2
             }
         }
     }
 
-    PageDot {
+    // ── L1 vertical scroll indicators ───────────────────────────────────
+    Column {
         anchors {
-            horizontalCenter: parent.horizontalCenter
-            bottom: parent.bottom
-            bottomMargin: Dims.h(2)
+            right: parent.right
+            rightMargin: Dims.w(2)
+            verticalCenter: parent.verticalCenter
         }
-        height: Dims.h(2)
-        dotNumber: 3
-        currentIndex: pageView.currentIndex
-        visible: !workoutInProgress
+        spacing: Dims.h(1)
+        visible: navState === "l1"
+
+        Repeater {
+            model: ScreenRegistry.folderCount
+
+            Rectangle {
+                width: Dims.w(1.5)
+                height: index === folderView.currentIndex ? Dims.h(4) : Dims.h(2)
+                radius: width / 2
+                color: index === folderView.currentIndex ? "white" : "#40FFFFFF"
+
+                Behavior on height {
+                    NumberAnimation { duration: 150; easing.type: Easing.OutQuad }
+                }
+                Behavior on color {
+                    ColorAnimation { duration: 150 }
+                }
+            }
+        }
+    }
+
+    // ── L2: Detail view (screens within a folder) ───────────────────────
+    DetailView {
+        id: detailView
+        anchors.fill: parent
+        visible: navState === "l2"
+        folderId: activeFolderId
+
+        onBackRequested: {
+            navState = "l1"
+        }
+    }
+
+    // ── Active workout: full-screen data screens ────────────────────────
+    Loader {
+        id: workoutActiveLoader
+        anchors.fill: parent
+        active: navState === "workout"
+        source: "WorkoutActivePage.qml"
+    }
+
+    // ── Transition animations ───────────────────────────────────────────
+    states: [
+        State {
+            name: "l1"
+            when: navState === "l1"
+            PropertyChanges { target: folderView; opacity: 1.0; visible: true }
+            PropertyChanges { target: detailView; opacity: 0.0 }
+        },
+        State {
+            name: "l2"
+            when: navState === "l2"
+            PropertyChanges { target: folderView; opacity: 0.0 }
+            PropertyChanges { target: detailView; opacity: 1.0; visible: true }
+        },
+        State {
+            name: "workout"
+            when: navState === "workout"
+            PropertyChanges { target: folderView; opacity: 0.0 }
+            PropertyChanges { target: detailView; opacity: 0.0 }
+        }
+    ]
+
+    transitions: [
+        Transition {
+            from: "l1"; to: "l2"
+            SequentialAnimation {
+                NumberAnimation { target: folderView; property: "opacity"; duration: 200 }
+                PropertyAction { target: folderView; property: "visible" }
+                NumberAnimation { target: detailView; property: "opacity"; duration: 200 }
+            }
+        },
+        Transition {
+            from: "l2"; to: "l1"
+            SequentialAnimation {
+                NumberAnimation { target: detailView; property: "opacity"; duration: 200 }
+                PropertyAction { target: detailView; property: "visible" }
+                NumberAnimation { target: folderView; property: "opacity"; duration: 200 }
+            }
+        },
+        Transition {
+            from: "*"; to: "workout"
+            NumberAnimation { properties: "opacity"; duration: 150 }
+        },
+        Transition {
+            from: "workout"; to: "l1"
+            SequentialAnimation {
+                NumberAnimation { target: workoutActiveLoader; property: "opacity"; duration: 200 }
+                NumberAnimation { target: folderView; property: "opacity"; duration: 200 }
+            }
+        }
+    ]
+
+    // ── Functions called by child components ─────────────────────────────
+    function enterFolder(folderId) {
+        activeFolderId = folderId
+        navState = "l2"
+    }
+
+    function enterWorkoutStart(workoutTypeId) {
+        activeWorkoutType = workoutTypeId
+        activeFolderId = "workouts"
+        navState = "l2"
+    }
+
+    function backToL1() {
+        navState = "l1"
     }
 }

@@ -1,0 +1,15 @@
+{
+    "id": "default_gps",
+    "name": "GPS",
+    "qml_source": "DataScreenGPS.qml",
+    "fields": [
+        { "id": "speed",     "label": "Speed",     "type": "speed",    "unit": "km/h" },
+        { "id": "distance",  "label": "Distance",  "type": "distance", "unit": "km" },
+        { "id": "elev_gain", "label": "Elev Gain",  "type": "distance", "unit": "m" },
+        { "id": "pace",      "label": "Pace",       "type": "pace",     "unit": "min/km" },
+        { "id": "coords",    "label": "Coordinates","type": "text" }
+    ],
+    "requires_sensor": "gps",
+    "always_show": false,
+    "description": "GPS data screen with speed, distance, elevation gain, pace, and coordinates."
+}

@@ -1,0 +1,18 @@
+{
+    "id": "other",
+    "name": "Other",
+    "icon": "ios-stopwatch",
+    "category": "other",
+    "sort_order": 10,
+    "gps_default": false,
+    "barometer_default": false,
+    "sensors": ["heart_rate", "step_count"],
+    "data_screens": ["default_timer", "default_hr"],
+    "metrics": ["calories"],
+    "power_profiles": {
+        "low_power":  { "hr_interval_ms": 5000 },
+        "balanced":   { "hr_interval_ms": 2000 },
+        "high_perf":  { "hr_interval_ms": 1000 },
+        "ultra":      { "hr_interval_ms": 500  }
+    }
+}

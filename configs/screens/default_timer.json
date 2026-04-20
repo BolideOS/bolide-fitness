@@ -1,0 +1,14 @@
+{
+    "id": "default_timer",
+    "name": "Timer",
+    "qml_source": "DataScreenTimer.qml",
+    "fields": [
+        { "id": "elapsed",  "label": "Elapsed",  "type": "duration" },
+        { "id": "distance", "label": "Distance",  "type": "distance", "unit": "km" },
+        { "id": "calories", "label": "Calories",  "type": "integer",  "unit": "kcal" },
+        { "id": "steps",    "label": "Steps",     "type": "integer" },
+        { "id": "pace",     "label": "Pace",      "type": "pace",     "unit": "min/km" }
+    ],
+    "always_show": true,
+    "description": "Primary timer screen with elapsed time, distance, calories, steps, and pace."
+}

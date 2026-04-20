@@ -1,9 +1,38 @@
 <RCC>
     <qresource prefix="/">
+        <!-- App shell -->
         <file>qml/main.qml</file>
+
+        <!-- Navigation -->
+        <file>qml/FolderGlance.qml</file>
+        <file>qml/DetailView.qml</file>
+
+        <!-- Workout screens -->
+        <file>qml/WorkoutFolderPage.qml</file>
+        <file>qml/WorkoutStartPage.qml</file>
+        <file>qml/AllWorkoutsPage.qml</file>
+        <file>qml/WorkoutListPage.qml</file>
         <file>qml/WorkoutActivePage.qml</file>
+        <file>qml/WorkoutSettingsPage.qml</file>
+
+        <!-- Data screens -->
         <file>qml/DataScreenTimer.qml</file>
         <file>qml/DataScreenHR.qml</file>
-        <file>qml/WorkoutSettingsPage.qml</file>
+        <file>qml/DataScreenGPS.qml</file>
+        <file>qml/DataScreenElevation.qml</file>
+
+        <!-- Section pages -->
+        <file>qml/SleepPage.qml</file>
+        <file>qml/ReadinessPage.qml</file>
+        <file>qml/BodyMetricsPage.qml</file>
+        <file>qml/TrendsPage.qml</file>
+        <file>qml/SensorsLabPage.qml</file>
+        <file>qml/SettingsPage.qml</file>
+
+        <!-- Reusable components -->
+        <file>qml/components/MetricCard.qml</file>
+        <file>qml/components/GraphWidget.qml</file>
+        <file>qml/components/DataField.qml</file>
+        <file>qml/components/ScreenGlance.qml</file>
     </qresource>
 </RCC>

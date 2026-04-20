@@ -1,0 +1,162 @@
+[
+    {
+        "id": "aerobic_efficiency",
+        "name": "Aerobic Efficiency",
+        "nameKey": "id-aerobic-efficiency",
+        "icon": "ios-pulse-outline",
+        "category": "scientific",
+        "unit": "min/km",
+        "minValue": 3,
+        "maxValue": 10,
+        "accentColor": "#4CAF50",
+        "glanceFormat": "value",
+        "pluginId": "aerobic_efficiency",
+        "sensorsUsed": ["heart_rate", "gps"],
+        "dependsOn": ["aerobic_threshold_dfa"],
+        "trendMetricId": "",
+        "displayFields": [
+            { "id": "pace_at_aet", "label": "Pace at AeT", "type": "pace", "primary": true },
+            { "id": "trend", "label": "Trend", "type": "sparkline" }
+        ],
+        "formula": "Pace at AeT HR (aerobic threshold validation)"
+    },
+    {
+        "id": "stress_recovery_balance",
+        "name": "Stress-Recovery Balance",
+        "nameKey": "id-stress-recovery",
+        "icon": "ios-git-compare-outline",
+        "category": "scientific",
+        "unit": "ms",
+        "minValue": -50,
+        "maxValue": 50,
+        "accentColor": "#009688",
+        "glanceFormat": "deviation",
+        "pluginId": "stress_recovery_balance",
+        "sensorsUsed": ["heart_rate"],
+        "dependsOn": ["hrv_status"],
+        "trendMetricId": "",
+        "displayFields": [
+            { "id": "balance", "label": "HRV Balance", "type": "deviation", "primary": true },
+            { "id": "baseline_hrv", "label": "Baseline", "type": "value" },
+            { "id": "today_hrv", "label": "Today", "type": "value" },
+            { "id": "trend_14d", "label": "14-Day Trend", "type": "sparkline" }
+        ],
+        "formula": "HRV_baseline - HRV_today (positive = recovered, negative = fatigued)"
+    },
+    {
+        "id": "heat_adjusted_pace",
+        "name": "Heat Adjusted Pace",
+        "nameKey": "id-heat-pace",
+        "icon": "ios-sunny-outline",
+        "category": "scientific",
+        "unit": "min/km",
+        "minValue": 2,
+        "maxValue": 15,
+        "accentColor": "#FF7043",
+        "glanceFormat": "pace",
+        "pluginId": "heat_adjusted_pace",
+        "sensorsUsed": ["temperature", "gps"],
+        "dependsOn": [],
+        "trendMetricId": "",
+        "displayFields": [
+            { "id": "adjusted_pace", "label": "Adjusted Pace", "type": "pace", "primary": true },
+            { "id": "raw_pace", "label": "Actual Pace", "type": "pace" },
+            { "id": "heat_penalty", "label": "Heat Penalty", "type": "percent" },
+            { "id": "temperature", "label": "Temp", "type": "value" }
+        ],
+        "formula": "Pace × (1 + HeatPenalty)",
+        "realtime": true
+    },
+    {
+        "id": "altitude_adjusted_vo2",
+        "name": "Altitude Adjusted VO2",
+        "nameKey": "id-alt-vo2",
+        "icon": "ios-trending-up",
+        "category": "scientific",
+        "unit": "ml/kg/min",
+        "minValue": 15,
+        "maxValue": 100,
+        "accentColor": "#5C6BC0",
+        "glanceFormat": "value",
+        "pluginId": "altitude_adjusted_vo2",
+        "sensorsUsed": ["gps", "barometer"],
+        "dependsOn": ["vo2max_estimate"],
+        "trendMetricId": "",
+        "displayFields": [
+            { "id": "adjusted_vo2", "label": "Alt-Adj VO2", "type": "value", "primary": true },
+            { "id": "raw_vo2", "label": "Raw VO2", "type": "value" },
+            { "id": "altitude", "label": "Altitude", "type": "value" },
+            { "id": "correction_pct", "label": "Correction", "type": "percent" }
+        ],
+        "formula": "VO2 × (1 + altitude_correction_factor)"
+    },
+    {
+        "id": "movement_variability",
+        "name": "Movement Variability Index",
+        "nameKey": "id-movement-variability",
+        "icon": "ios-analytics-outline",
+        "category": "scientific",
+        "unit": "",
+        "minValue": 0,
+        "maxValue": 100,
+        "accentColor": "#78909C",
+        "glanceFormat": "score",
+        "pluginId": "movement_variability",
+        "sensorsUsed": ["accelerometer"],
+        "dependsOn": [],
+        "trendMetricId": "",
+        "displayFields": [
+            { "id": "index", "label": "Variability", "type": "score", "primary": true },
+            { "id": "interpretation", "label": "Status", "type": "category" },
+            { "id": "trend", "label": "Trend", "type": "sparkline" }
+        ],
+        "formula": "variance(accelerometer_signal)",
+        "realtime": true
+    },
+    {
+        "id": "glycogen_depletion",
+        "name": "Glycogen Depletion Estimate",
+        "nameKey": "id-glycogen",
+        "icon": "ios-nutrition-outline",
+        "category": "scientific",
+        "unit": "%",
+        "minValue": 0,
+        "maxValue": 100,
+        "accentColor": "#FFC107",
+        "glanceFormat": "percent",
+        "pluginId": "glycogen_depletion",
+        "sensorsUsed": ["heart_rate", "gps"],
+        "dependsOn": [],
+        "trendMetricId": "",
+        "displayFields": [
+            { "id": "remaining_pct", "label": "Glycogen Left", "type": "percent", "primary": true },
+            { "id": "depletion_rate", "label": "Burn Rate", "type": "value" },
+            { "id": "time_to_wall", "label": "Est. Bonk", "type": "duration" }
+        ],
+        "formula": "100 - (Intensity × Duration × Factor)",
+        "realtime": true
+    },
+    {
+        "id": "terrain_difficulty",
+        "name": "Terrain Difficulty Score",
+        "nameKey": "id-terrain-difficulty",
+        "icon": "ios-map-outline",
+        "category": "scientific",
+        "unit": "",
+        "minValue": 0,
+        "maxValue": 100,
+        "accentColor": "#795548",
+        "glanceFormat": "score",
+        "pluginId": "terrain_difficulty",
+        "sensorsUsed": ["gps", "barometer", "accelerometer"],
+        "dependsOn": [],
+        "trendMetricId": "",
+        "displayFields": [
+            { "id": "difficulty", "label": "Difficulty", "type": "score", "primary": true },
+            { "id": "elevation_factor", "label": "Elevation", "type": "percent" },
+            { "id": "grade_factor", "label": "Grade Var.", "type": "percent" },
+            { "id": "surface_factor", "label": "Surface", "type": "percent" }
+        ],
+        "formula": "ElevationGain + GradeVariability + SurfaceRoughness"
+    }
+]

@@ -1,0 +1,18 @@
+{
+    "id": "yoga",
+    "name": "Yoga",
+    "icon": "ios-body",
+    "category": "flexibility",
+    "sort_order": 9,
+    "gps_default": false,
+    "barometer_default": false,
+    "sensors": ["heart_rate"],
+    "data_screens": ["default_timer", "default_hr"],
+    "metrics": ["calories", "hrv_rmssd", "hrv_sdnn"],
+    "power_profiles": {
+        "low_power":  { "hr_interval_ms": 10000 },
+        "balanced":   { "hr_interval_ms": 5000  },
+        "high_perf":  { "hr_interval_ms": 2000  },
+        "ultra":      { "hr_interval_ms": 1000  }
+    }
+}
