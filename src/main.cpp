@@ -27,6 +27,7 @@
 #include "ml/mlregistry.h"
 #include "ml/builtinmodels.h"
 #include "companion/companionservice.h"
+#include "companion/metricsbroadcaster.h"
 #include "companion/gadgetbridgesync.h"
 
 int main(int argc, char *argv[])
@@ -114,10 +115,20 @@ int main(int argc, char *argv[])
     mlRegistry.registerPlugin(new SleepStagingModel());
     mlRegistry.discoverModels(modelDir);
 
+    /* ── MetricsBroadcaster (D-Bus: org.bolide.fitness.Metrics) ────── */
+    static MetricsBroadcaster metricsBroadcaster;
+    metricsBroadcaster.setBodyMetrics(&bodyMetrics);
+    metricsBroadcaster.setSleepTracker(&sleepTracker);
+    metricsBroadcaster.setReadinessScore(&readinessScore);
+    metricsBroadcaster.setTrendsManager(&trendsManager);
+    metricsBroadcaster.setDatabase(&database);
+    metricsBroadcaster.registerService();
+
     static CompanionService companionService;
     companionService.setDatabase(&database);
     companionService.setExportManager(&exportManager);
     companionService.setTrendsManager(&trendsManager);
+    companionService.setMetricsBroadcaster(&metricsBroadcaster);
     companionService.registerService();
 
     static GadgetbridgeSync gadgetbridgeSync;

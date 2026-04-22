@@ -22,6 +22,7 @@
 class Database;
 class ExportManager;
 class TrendsManager;
+class MetricsBroadcaster;
 
 /**
  * @brief D-Bus service for companion application communication.
@@ -54,6 +55,7 @@ public:
     void setDatabase(Database *db);
     void setExportManager(ExportManager *em);
     void setTrendsManager(TrendsManager *tm);
+    void setMetricsBroadcaster(MetricsBroadcaster *mb);
 
     /** Register on the session D-Bus. Returns true on success. */
     bool registerService();
@@ -108,6 +110,15 @@ public slots:
     /** Trigger a full sync (recompute baselines, etc). */
     void TriggerSync();
 
+    /** Push real-time metrics from companion (phone → watch sync). */
+    int PushMetrics(const QVariantMap &metrics);
+
+    /** Push daily metric history from companion for a specific date. */
+    bool PushDailyMetrics(const QString &date, const QVariantMap &metrics);
+
+    /** Push a workout from companion (phone → watch sync). */
+    qlonglong PushWorkout(const QVariantMap &workout, const QVariantList &samples);
+
     /** Ping — returns "pong" for connectivity check. */
     QString Ping();
 
@@ -133,6 +144,7 @@ private:
     Database *m_database;
     ExportManager *m_exportManager;
     TrendsManager *m_trendsManager;
+    MetricsBroadcaster *m_metricsBroadcaster;
     bool m_registered;
 };
 

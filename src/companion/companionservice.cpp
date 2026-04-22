@@ -8,6 +8,7 @@
  */
 
 #include "companionservice.h"
+#include "metricsbroadcaster.h"
 #include "core/database.h"
 #include "export/exportmanager.h"
 #include "domain/trendsmanager.h"
@@ -24,6 +25,7 @@ CompanionService::CompanionService(QObject *parent)
     , m_database(nullptr)
     , m_exportManager(nullptr)
     , m_trendsManager(nullptr)
+    , m_metricsBroadcaster(nullptr)
     , m_registered(false)
 {
 }
@@ -46,6 +48,11 @@ void CompanionService::setExportManager(ExportManager *em)
 void CompanionService::setTrendsManager(TrendsManager *tm)
 {
     m_trendsManager = tm;
+}
+
+void CompanionService::setMetricsBroadcaster(MetricsBroadcaster *mb)
+{
+    m_metricsBroadcaster = mb;
 }
 
 bool CompanionService::registerService()
@@ -246,4 +253,82 @@ void CompanionService::TriggerSync()
 QString CompanionService::Ping()
 {
     return QStringLiteral("pong");
+}
+
+// ── Inbound sync methods (companion → watch) ───────────────────────────────
+
+int CompanionService::PushMetrics(const QVariantMap &metrics)
+{
+    if (!m_metricsBroadcaster)
+        return 0;
+
+    int updated = m_metricsBroadcaster->PushMetrics(metrics);
+    if (updated > 0)
+        emit MetricsUpdated(metrics);
+
+    return updated;
+}
+
+bool CompanionService::PushDailyMetrics(const QString &date, const QVariantMap &metrics)
+{
+    if (!m_database)
+        return false;
+
+    QDate d = QDate::fromString(date, Qt::ISODate);
+    if (!d.isValid())
+        return false;
+
+    // Store each metric for the given date
+    for (auto it = metrics.constBegin(); it != metrics.constEnd(); ++it) {
+        m_database->storeDailyMetric(d, it.key(), it.value().toDouble());
+    }
+
+    // If this is today, also push to the live broadcaster
+    if (d == QDate::currentDate() && m_metricsBroadcaster) {
+        m_metricsBroadcaster->PushMetrics(metrics);
+    }
+
+    emit MetricsUpdated(metrics);
+    return true;
+}
+
+qlonglong CompanionService::PushWorkout(const QVariantMap &workout, const QVariantList &samples)
+{
+    if (!m_database)
+        return -1;
+
+    // Create the workout record
+    QString type = workout.value(QStringLiteral("type"), QStringLiteral("unknown")).toString();
+    qint64 startTime = workout.value(QStringLiteral("startTime"), 0).toLongLong();
+    qint64 id = m_database->createWorkout(type, startTime);
+    if (id < 0)
+        return -1;
+
+    // Finish the workout with provided stats
+    qint64 endTime = workout.value(QStringLiteral("endTime"), startTime).toLongLong();
+    int duration = workout.value(QStringLiteral("duration"), 0).toInt();
+    double distance = workout.value(QStringLiteral("distance"), 0.0).toDouble();
+    double elevation = workout.value(QStringLiteral("elevationGain"), 0.0).toDouble();
+    int calories = workout.value(QStringLiteral("calories"), 0).toInt();
+    int avgHR = workout.value(QStringLiteral("avgHR"), 0).toInt();
+    int maxHR = workout.value(QStringLiteral("maxHR"), 0).toInt();
+    double avgPace = workout.value(QStringLiteral("avgPace"), 0.0).toDouble();
+    m_database->finishWorkout(id, endTime, duration, distance, elevation, calories, avgHR, maxHR, avgPace);
+
+    // Store sensor samples if provided
+    if (!samples.isEmpty()) {
+        QVector<QPair<qint64, float>> hrSamples;
+        for (const QVariant &s : samples) {
+            QVariantMap sample = s.toMap();
+            qint64 ts = sample.value(QStringLiteral("timestamp"), 0).toLongLong();
+            float hr = sample.value(QStringLiteral("heartRate"), 0).toFloat();
+            if (ts > 0 && hr > 0)
+                hrSamples.append({ts, hr});
+        }
+        if (!hrSamples.isEmpty())
+            m_database->storeSensorBatch(id, QStringLiteral("heartRate"), hrSamples);
+    }
+
+    emit WorkoutCompleted(id, workout);
+    return id;
 }

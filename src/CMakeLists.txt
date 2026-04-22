@@ -84,11 +84,13 @@ set(ML_HEADERS
 set(COMPANION_SRC
     companion/companionservice.cpp
     companion/gadgetbridgesync.cpp
+    companion/metricsbroadcaster.cpp
 )
 
 set(COMPANION_HEADERS
     companion/companionservice.h
     companion/gadgetbridgesync.h
+    companion/metricsbroadcaster.h
 )
 
 set(SRC
@@ -111,7 +113,14 @@ set(HEADERS
 )
 
 # ── Target ───────────────────────────────────────────────────────────────────
-add_library(bolide-fitness ${SRC} ${HEADERS} resources.qrc)
+find_package(Qt5QuickCompiler)
+if(Qt5QuickCompiler_FOUND)
+    qtquick_compiler_add_resources(RESOURCES resources.qrc)
+else()
+    qt5_add_resources(RESOURCES resources.qrc)
+endif()
+
+add_library(bolide-fitness ${SRC} ${HEADERS} ${RESOURCES})
 set_target_properties(bolide-fitness PROPERTIES PREFIX "")
 
 find_package(PkgConfig REQUIRED)
@@ -136,3 +145,6 @@ target_link_libraries(bolide-fitness PRIVATE
 
 install(TARGETS bolide-fitness
     DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+# ── BolideMetrics QML plugin (standalone D-Bus consumer) ─────────────────────
+add_subdirectory(metrics-plugin)
