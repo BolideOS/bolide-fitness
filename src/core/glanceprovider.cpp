@@ -11,6 +11,8 @@
 
 #include <QDBusConnection>
 #include <QDBusError>
+#include <QDBusInterface>
+#include <QDBusReply>
 
 GlanceProvider *GlanceProvider::s_instance = nullptr;
 
@@ -78,11 +80,43 @@ void GlanceProvider::updateGlance(const QString &screenId,
     m_glances[screenId] = g;
     emit glanceUpdated(screenId, g);
     emit glancesChanged();
+
+    // Forward to shell's GlanceRegistry via D-Bus
+    pushToShell(screenId, g);
 }
 
 void GlanceProvider::removeGlance(const QString &screenId)
 {
     if (m_glances.remove(screenId) > 0) {
         emit glancesChanged();
+
+        // Tell shell to remove this glance
+        QDBusInterface shell(QStringLiteral("org.bolideos.Glances"),
+                             QStringLiteral("/org/bolideos/Glances"),
+                             QStringLiteral("org.bolideos.Glances"),
+                             QDBusConnection::sessionBus());
+        if (shell.isValid())
+            shell.asyncCall(QStringLiteral("removeGlance"),
+                            QStringLiteral("org.bolide.fitness"), screenId);
     }
+}
+
+void GlanceProvider::pushToShell(const QString &screenId,
+                                 const QVariantMap &data)
+{
+    QDBusInterface shell(QStringLiteral("org.bolideos.Glances"),
+                         QStringLiteral("/org/bolideos/Glances"),
+                         QStringLiteral("org.bolideos.Glances"),
+                         QDBusConnection::sessionBus());
+    if (!shell.isValid())
+        return;
+
+    // Add desktop file so the shell can map this app in the launcher list
+    QVariantMap enriched = data;
+    enriched[QStringLiteral("desktopFile")] = QStringLiteral("bolide-fitness.desktop");
+
+    shell.asyncCall(QStringLiteral("registerGlance"),
+                    QStringLiteral("org.bolide.fitness"),
+                    screenId,
+                    enriched);
 }

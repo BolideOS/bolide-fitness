@@ -87,6 +87,9 @@ signals:
 private:
     static GlanceProvider *s_instance;
     QMap<QString, QVariantMap> m_glances;
+
+    /** Forward glance data to shell's GlanceRegistry via D-Bus. */
+    void pushToShell(const QString &screenId, const QVariantMap &data);
 };
 
 #endif // GLANCEPROVIDER_H
